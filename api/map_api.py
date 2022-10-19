@@ -16,9 +16,9 @@ class MapOfBuildingManager(Resource):
     :param global_id: str
     """
     def get(self, global_id: str):
-        response = requests.get(self._getMapDataLink(global_id))
+        response = requests.get(self.__getMapDataLink(global_id))
         return jsonify(response.json())
 
     @staticmethod
-    def _getMapDataLink(global_id):
+    def __getMapDataLink(global_id):
         return f"https://apidata.mos.ru/v1/mapfeatures/060562?versionNumber=3&releaseNumber=822&rowId={global_id}&api_key={API_KEY}"

@@ -2,6 +2,8 @@ from flask import Flask
 from flask_restful import Api
 from api.hello_world import HelloWorld, HelloTest
 from api.map_api import MapOfBuildingManager
+from api.input_data_api import InputDataManager
+from api.pdf_file_api import PdfFileManager
 
 app = Flask(__name__)
 api = Api(app)
@@ -10,7 +12,9 @@ api = Api(app)
 api_routes = [
     (HelloWorld, '/'),
     (HelloTest, '/a'),
-    (MapOfBuildingManager, '/getMapCoords/<string:global_id>'),
+    (MapOfBuildingManager, '/api/getMapCoords/<string:global_id>'),
+    (InputDataManager, '/api/getPrice'),
+    (PdfFileManager, '/api/getPdfFile'),
 ]
 
 for i in api_routes:
