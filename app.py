@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_restful import Api
 from api.hello_world import HelloWorld, HelloTest
+from api.map_api import MapOfBuildingManager
 
 app = Flask(__name__)
 api = Api(app)
@@ -9,6 +10,7 @@ api = Api(app)
 api_routes = [
     (HelloWorld, '/'),
     (HelloTest, '/a'),
+    (MapOfBuildingManager, '/getMapCoords/<string:global_id>'),
 ]
 
 for i in api_routes:
