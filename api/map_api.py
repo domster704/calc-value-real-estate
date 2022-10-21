@@ -1,6 +1,6 @@
+import requests
 from flask import jsonify
 from flask_restful import Resource
-import requests
 
 # api ключ, который я получил в личном кабинете apidata.mos.ru
 API_KEY = "bdfe5153e721f1cc0afb699312765f70"
@@ -15,6 +15,7 @@ class MapOfBuildingManager(Resource):
     ссылка - https://data.mos.ru/opendata/60562
     :param global_id: str
     """
+
     def get(self, global_id: str):
         response = requests.get(self.__getMapDataLink(global_id))
         return jsonify(response.json())

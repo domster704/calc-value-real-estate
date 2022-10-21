@@ -1,8 +1,9 @@
 from flask import Flask
 from flask_restful import Api
+
 from api.hello_world import HelloWorld, HelloTest
-from api.map_api import MapOfBuildingManager
 from api.input_data_api import InputDataManager
+from api.map_api import MapOfBuildingManager
 from api.pdf_file_api import PdfFileManager
 
 app = Flask(__name__)

@@ -26,7 +26,7 @@ class PDFCreator(object):
         """
         from borb.pdf import Document
         from borb.pdf import Page
-        from borb.pdf import SingleColumnLayout, MultiColumnLayout
+        from borb.pdf import MultiColumnLayout
         from borb.pdf import Paragraph
         from borb.pdf import PDF
         from borb.io.read.types import Decimal
