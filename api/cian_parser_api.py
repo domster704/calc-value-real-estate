@@ -21,7 +21,7 @@ class CianParser(object):
         self.__listOfFlatsLink = []
         self.__listOfFlatParams = []
 
-        self.__address = dictWithData["address"]
+        self.__address = "".join(dictWithData["address"].split(',')[:-1])
         self.__rooms = dictWithData["room"]
         self.__segment = dictWithData["segment"]
         self.__floor = dictWithData["floor"]
