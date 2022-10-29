@@ -1,3 +1,5 @@
+from time import sleep
+
 import bs4
 import cloudscraper
 from flask_restful import Resource
@@ -42,6 +44,7 @@ class CianCalc(Resource):
         mainLinkWithPrice = lambda \
                 estimationID: f"""https://www.cian.ru/kalkulator-nedvizhimosti/?address={reqStr}%2C%20151&totalArea={flatData["area"]}&roomsCount={flatData["roomsCount"]}&estimationId={estimationID}&valuationType=sale"""
         linkWithPrice = mainLinkWithPrice(self.__getEstimationID())
+        print(linkWithPrice)
 
         content = self.scraper.get(linkWithPrice)
         soup = bs4.BeautifulSoup(content.text, "html.parser")
@@ -53,6 +56,8 @@ class CianCalc(Resource):
         # Так как {self.scraper.get(...)} не всегда возвращает то, что надо, поэтому будет повторно вызывать методы
         # для поиска тега с ценой
         while res is None:
+            # ожидание 5 секунд, чтобы сайт не блокировал запросы
+            sleep(5000)
             content = self.scraper.get(linkWithPrice)
             soup = bs4.BeautifulSoup(content.text, "html.parser")
             res = soup.find("span",

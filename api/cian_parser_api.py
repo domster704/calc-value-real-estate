@@ -1,8 +1,5 @@
-import time
-
-import bs4
 import cloudscraper
-from flask import request, jsonify
+from flask import request
 from flask_restful import Resource
 
 
@@ -32,7 +29,7 @@ class CianParser(object):
 
     def parse(self):
         self.__geoID("г. Москва, ул. Ватутина")
-        self.__calcFlatsLinksAndIDs()
+        self.__readFlatsParamsFromJson()
         # for i in self.__listOfFlatsLink:
         #     self.__parsePage(i)
         return self.__listOfFlatParams
@@ -62,9 +59,9 @@ class CianParser(object):
 
         self.__geocodeID = responseForGetGeoID.json()["details"][1]["id"]
 
-    def __calcFlatsLinksAndIDs(self):
+    def __readFlatsParamsFromJson(self):
         """
-        Функция для нахождения id и ссылки квартир по заданному адресу.
+        Функция, которая считывает данные о квартирах с json файла
         """
 
         houseMaterialsId = {
@@ -138,44 +135,6 @@ class CianParser(object):
                 "buildingData": elem["building"]
             }
             self.__listOfFlatParams.append(data)
-
-            # idOfFlat = elem["id"]
-            # self.__listOfFlatsID.append(idOfFlat)
-            # self.__listOfFlatsLink.append(f"https://www.cian.ru/sale/flat/{idOfFlat}")
-
-    def __parsePage(self, link: str):
-        """
-        Функция для получения данных о квартире посредством парсинга.
-        :param link: ссылка на квартиру на сайте cian
-        """
-
-        page = self.__cloudscraper.get(link).text
-        soup = bs4.BeautifulSoup(page, "html.parser")
-
-        data = {}
-
-        price = soup.find("span", {"itemprop": "price"})
-        flatParams = soup.find_all("div", {"class": "a10a3f92e9--info-value--bm3DC"})
-        flatParamsTitle = soup.find_all("div", {"class": "a10a3f92e9--info-title--JWtIm"})
-
-        if flatParams == [] or flatParamsTitle == [] or price is None:
-            return
-
-        data["price"] = price.text.replace(" ", "")[:-1]
-
-        for i in range(len(flatParams)):
-            value = flatParams[i].text
-            title = flatParamsTitle[i].text
-            res = ""
-            if title not in ["Этаж"]:
-                res = value.replace(" ", "")[:-2]
-            elif title == "Этаж":
-                res = list(map(int, value.replace(" ", "").split("из")))
-            elif title == "Построен":
-                res = value.replace(" ", "")
-            data[title] = res
-        self.__listOfFlatParams.append(data)
-        time.sleep(1)
 
 
 if __name__ == "__main__":
