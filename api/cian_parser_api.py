@@ -31,8 +31,6 @@ class CianParser(object):
     def parse(self):
         self.__geoID(self.__address)
         self.__readFlatsParamsFromJson()
-        # for i in self.__listOfFlatsLink:
-        #     self.__parsePage(i)
         return self.__listOfFlatParams
 
     def __geoID(self, addressInputted: str):
@@ -143,11 +141,11 @@ class CianParser(object):
                     "material": elem["building"]["materialType"],
                     "area": elem["totalArea"],
                     "kitchenArea": elem["kitchenArea"],
-                    "balcony": isThereBalcony,
+                    "balcony": str(isThereBalcony),
                     "metroTime": metroTime,
                     "location": {
-                        "lat": elem["geo"]["coordinates"]["lat"],
-                        "lng": elem["geo"]["coordinates"]["lng"],
+                        "lat": str(elem["geo"]["coordinates"]["lat"]),
+                        "lng": str(elem["geo"]["coordinates"]["lng"]),
                     }
                 }
 
