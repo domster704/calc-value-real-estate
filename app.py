@@ -19,5 +19,5 @@ api_routes = [
 for i in api_routes:
     api.add_resource(i[0], i[1])
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(debug=True)
