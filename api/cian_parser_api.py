@@ -1,5 +1,5 @@
 import cloudscraper
-from flask import request
+from flask import request, jsonify
 from flask_restful import Resource
 import json
 
@@ -8,7 +8,7 @@ class CianParserApi(Resource):
     def get(self):
         args = request.json
         cianParser = CianParser(args)
-        return cianParser.parse()
+        return jsonify(cianParser.parse())
 
 
 class CianParser(object):
@@ -127,6 +127,11 @@ class CianParser(object):
 
         for name in ["offersSerialized", "suggestOffersSerializedList"]:
             for elem in responseOfOffers.json()["data"][name]:
+                isThereBalcony = True if type(elem["balconiesCount"]) is int and elem["balconiesCount"] > 0 else False
+                metroTime = 100000
+                for metroData in elem["geo"]["undergrounds"]:
+                    metroTime = min(metroData["time"], metroTime)
+
                 data = {
                     # "id": elem["id"],
                     # "buildingData": elem["building"],
@@ -138,7 +143,8 @@ class CianParser(object):
                     "material": elem["building"]["materialType"],
                     "area": elem["totalArea"],
                     "kitchenArea": elem["kitchenArea"],
-                    "balcony": elem["balconiesCount"],
+                    "balcony": isThereBalcony,
+                    "metroTime": metroTime,
                     "location": {
                         "lat": elem["geo"]["coordinates"]["lat"],
                         "lng": elem["geo"]["coordinates"]["lng"],

@@ -2,8 +2,6 @@ from flask import Flask
 from flask_restful import Api
 
 from api.hello_world import HelloWorld, HelloTest
-from api.input_data_api import InputDataManager
-from api.map_api import MapOfBuildingManager
 from api.pdf_file_api import PdfFileManager
 from api.cian_parser_api import CianParserApi
 
@@ -14,8 +12,6 @@ api = Api(app)
 api_routes = [
     (HelloWorld, '/'),
     (HelloTest, '/a'),
-    (MapOfBuildingManager, '/api/getMapCoords/<string:global_id>'),
-    (InputDataManager, '/api/getPrice'),
     (PdfFileManager, '/api/getPdfFile'),
     (CianParserApi, '/api/getCianAnalogs'),
 ]
