@@ -25,7 +25,7 @@ class CianParser(object):
         self.__address = "".join(dictWithData["address"].split(',')[:-1])
         self.__rooms = dictWithData["room"]
         self.__segment = dictWithData["segment"]
-        self.__floor = dictWithData["floor"]
+        self.__maxFloor = dictWithData["maxFloor"]
         self.__material = dictWithData["material"]
 
     def parse(self):
@@ -67,15 +67,15 @@ class CianParser(object):
 
         houseMaterialsId = {
             "Неважно": 0,
-            "Кирпичный": 1,
-            "Монолитный": 2,
-            "Панельный": 3,
+            "Кирпич": 1,
+            "Монолит": 2,
+            "Панель": 3,
         }
 
         segmentId = {
             "Старый жилой фонд": 1,
-            "Новостройка": 2,
-            "Современное жильё": 2
+            "Современное жильё": 1,
+            "Новостройка": 2
         }
 
         linkOfOffers = "https://api.cian.ru/search-offers/v2/search-offers-desktop/"
@@ -113,7 +113,7 @@ class CianParser(object):
                     "type": "range",
                     "value": {
                         "gte": 0,
-                        "lte": self.__floor
+                        "lte": self.__maxFloor
                     }
                 },
                 "region": {
@@ -128,19 +128,21 @@ class CianParser(object):
         for name in ["offersSerialized", "suggestOffersSerializedList"]:
             for elem in responseOfOffers.json()["data"][name]:
                 data = {
-                    "id": elem["id"],
+                    # "id": elem["id"],
+                    # "buildingData": elem["building"],
+                    "address": elem["geo"]["userInput"],
                     "price": elem["bargainTerms"]["price"],
-                    "room": elem["roomsCount"],
+                    "roomsCount": elem["roomsCount"],
                     "floor": elem["floorNumber"],
                     "maxFloor": elem["building"]["floorsCount"],
                     "material": elem["building"]["materialType"],
-                    "buildingData": elem["building"],
-                    "area": elem["totalArea"]
+                    "area": elem["totalArea"],
+                    "kitchenArea": elem["kitchenArea"],
+                    "balcony": elem["balconiesCount"],
+                    "location": {
+                        "lat": elem["geo"]["coordinates"]["lat"],
+                        "lng": elem["geo"]["coordinates"]["lng"],
+                    }
                 }
 
                 self.__listOfFlatParams.append(data)
-
-
-if __name__ == "__main__":
-    c = CianParser()
-    c.parse()
