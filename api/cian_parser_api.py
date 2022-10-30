@@ -1,6 +1,7 @@
 import cloudscraper
 from flask import request
 from flask_restful import Resource
+import json
 
 
 class CianParserApi(Resource):
@@ -28,7 +29,7 @@ class CianParser(object):
         self.__material = dictWithData["material"]
 
     def parse(self):
-        self.__geoID("г. Москва, ул. Ватутина")
+        self.__geoID(self.__address)
         self.__readFlatsParamsFromJson()
         # for i in self.__listOfFlatsLink:
         #     self.__parsePage(i)
@@ -78,7 +79,6 @@ class CianParser(object):
         }
 
         linkOfOffers = "https://api.cian.ru/search-offers/v2/search-offers-desktop/"
-        # TODO: сделать возможность изменять кол-во комнат
         responseOfOffers = self.__cloudscraper.post(linkOfOffers, json={
             "jsonQuery": {
                 "_type": "flatsale",
@@ -96,19 +96,13 @@ class CianParser(object):
                 "room": {
                     "type": "terms",
                     "value": [
-                        self.__rooms
+                        int(self.__rooms)
                     ]
                 },
                 "house_material": {
                     "type": "terms",
                     "value": [
                         houseMaterialsId[self.__material]
-                    ]
-                },
-                "region": {
-                    "type": "terms",
-                    "value": [
-                        1
                     ]
                 },
                 "building_status": {
@@ -121,20 +115,30 @@ class CianParser(object):
                         "gte": 0,
                         "lte": self.__floor
                     }
+                },
+                "region": {
+                    "type": "terms",
+                    "value": [
+                        1
+                    ]
                 }
             }
         })
 
-        for elem in responseOfOffers.json()["data"]["offersSerialized"]:
-            data = {
-                "price": elem["bargainTerms"]["price"],
-                "room": elem["roomsCount"],
-                "floor": elem["floorNumber"],
-                "maxFloor": elem["building"]["floorsCount"],
-                "material": elem["building"]["materialType"],
-                "buildingData": elem["building"]
-            }
-            self.__listOfFlatParams.append(data)
+        for name in ["offersSerialized", "suggestOffersSerializedList"]:
+            for elem in responseOfOffers.json()["data"][name]:
+                data = {
+                    "id": elem["id"],
+                    "price": elem["bargainTerms"]["price"],
+                    "room": elem["roomsCount"],
+                    "floor": elem["floorNumber"],
+                    "maxFloor": elem["building"]["floorsCount"],
+                    "material": elem["building"]["materialType"],
+                    "buildingData": elem["building"],
+                    "area": elem["totalArea"]
+                }
+
+                self.__listOfFlatParams.append(data)
 
 
 if __name__ == "__main__":
