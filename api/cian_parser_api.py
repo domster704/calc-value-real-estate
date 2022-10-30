@@ -61,7 +61,7 @@ class CianParser(object):
         """
         Функция, которая считывает данные о квартирах с json файла
         """
-        
+
         houseMaterialsId = {
             "кирпич": 1,
             "brick": 1,
@@ -73,11 +73,11 @@ class CianParser(object):
 
         segmentId = {
             "старый жилой фонд": 1,
-            "oldHousingStock": 1,
+            "oldhousingstock": 1,
             "современное жильё": 1,
-            "modernHousing": 1,
+            "modernhousing": 1,
             "новостройка": 2,
-            "newBuilding": 2,
+            "newbuilding": 2,
         }
 
         linkOfOffers = "https://api.cian.ru/search-offers/v2/search-offers-desktop/"
