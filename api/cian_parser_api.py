@@ -23,9 +23,9 @@ class CianParser(object):
 
         self.__address = "".join(dictWithData["address"].split(',')[:-1])
         self.__rooms = dictWithData["room"]
-        self.__segment = dictWithData["segment"]
+        self.__segment = str(dictWithData["segment"]).lower()
         self.__maxFloor = dictWithData["maxFloor"]
-        self.__material = dictWithData["material"]
+        self.__material = str(dictWithData["material"]).lower()
 
     def parse(self):
         self.__geoID(self.__address)
@@ -61,17 +61,23 @@ class CianParser(object):
         """
         Функция, которая считывает данные о квартирах с json файла
         """
-
+        
         houseMaterialsId = {
-            "Кирпич": 1,
-            "Монолит": 2,
-            "Панель": 3,
+            "кирпич": 1,
+            "brick": 1,
+            "монолит": 2,
+            "monolith": 2,
+            "панель": 3,
+            "panel": 3
         }
 
         segmentId = {
-            "Старый жилой фонд": 1,
-            "Современное жильё": 1,
-            "Новостройка": 2
+            "старый жилой фонд": 1,
+            "oldHousingStock": 1,
+            "современное жильё": 1,
+            "modernHousing": 1,
+            "новостройка": 2,
+            "newBuilding": 2,
         }
 
         linkOfOffers = "https://api.cian.ru/search-offers/v2/search-offers-desktop/"
@@ -141,6 +147,7 @@ class CianParser(object):
                     "kitchenArea": elem["kitchenArea"],
                     "balcony": str(isThereBalcony),
                     "metroTime": metroTime,
+                    "segment": self.__segment,
                     "location": {
                         "lat": str(elem["geo"]["coordinates"]["lat"]),
                         "lng": str(elem["geo"]["coordinates"]["lng"]),
