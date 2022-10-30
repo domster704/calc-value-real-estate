@@ -1,7 +1,6 @@
 import cloudscraper
 from flask import request, jsonify
 from flask_restful import Resource
-import json
 
 
 class CianParserApi(Resource):
@@ -64,7 +63,6 @@ class CianParser(object):
         """
 
         houseMaterialsId = {
-            "Неважно": 0,
             "Кирпич": 1,
             "Монолит": 2,
             "Панель": 3,
