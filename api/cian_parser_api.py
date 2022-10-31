@@ -4,7 +4,7 @@ from flask_restful import Resource
 
 
 class CianParserApi(Resource):
-    def get(self):
+    def post(self):
         args = request.json
         cianParser = CianParser(args)
         return jsonify(cianParser.parse())
