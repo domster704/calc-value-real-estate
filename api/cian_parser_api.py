@@ -1,70 +1,103 @@
-import time
-
-import bs4
 import cloudscraper
+from flask import request, jsonify
 from flask_restful import Resource
+
+from correct_params import CorrectParam
 
 
 class CianParserApi(Resource):
-    def get(self):
-        pass
-
     def post(self):
-        pass
+        args = request.json
+        cianParser = CianParser(args)
+        return jsonify(cianParser.parse())
 
 
 class CianParser(object):
-    def __init__(self):
-        self.cloudscraper = cloudscraper.create_scraper()
-        self.geoID = 0
-        self.listOfFlatsID = []
-        self.listOfFlatsLink = []
+    def __init__(self, dictWithData: dict):
+        self.__cloudscraper = cloudscraper.create_scraper()
+        self.__cloudscraper.headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36"
+        }
+        self.__geocodeID: int = 0
+        self.__listOfFlatParams: list = []
+
+        # ------------- Обязательные параметры ---------------
+        self.__address: str = "".join(dictWithData["address"].split(',')[:-1])
+        self.__rooms: int = dictWithData["room"]
+        self.__segment: str = str(dictWithData["segment"]).lower()
+        self.__maxFloor: int = dictWithData["maxFloor"]
+        self.__material: str = str(dictWithData["material"]).lower()
+
+        # ------------- Корректирующие параметры -------------
+        self.__flatFloor: int = dictWithData["correctFloor"]
+        self.__flatArea: str = dictWithData["correctArea"]
+        self.__flatKitchenArea: str = dictWithData["correctKitchenArea"]
+        self.__flatBalcony: bool = True if str(dictWithData["correctBalcony"]).lower() == "true" else False
+        self.__metroTime: int = dictWithData["correctMetroTime"]
+        self.__flatStatusFinish: str = str(dictWithData["correctStatusFinish"]).lower()
+
+        self.__typeOfEvalFloor: int = CorrectParam.getTypeOfFloor(self.__flatFloor, self.__maxFloor)
+        self.__typeOfEvalArea: int = CorrectParam.getTypeOfArea(float(self.__flatArea))
+        self.__typeOfEvalKitchenArea: int = CorrectParam.getTypeOfKitchenArea(float(self.__flatKitchenArea))
+        self.__typeOfEvalBalcony: int = CorrectParam.getTypeOfBalcony(self.__flatBalcony)
+        self.__typeOfEvalMetroTime: int = CorrectParam.getTypeOfMetroTime(self.__metroTime)
+        self.__typeOfEvalStatusFinish: int = CorrectParam.getTypeOfStatusFinish(self.__flatStatusFinish)
 
     def parse(self):
-        self.__geoID("г. Москва, ул. Ватутина")
-        self.__calcFlatsLinksAndIDs()
-        self.__parsePage(self.listOfFlatsLink[0])
+        self.__geoID(self.__address)
+        self.__readFlatsParamsFromJson()
+        return self.__listOfFlatParams
 
     def __geoID(self, addressInputted: str):
         """
         :param addressInputted: адрес, который мы получаем из таблицы на фронте.
-
         e.g. address = г. Москва, ул. Ватутина, д. 11
         """
 
-        def getCoord():
+        def getCoord() -> list:
             """
             :return: список из координат формата [x, y]
             """
             linkForGetCoord = f"https://www.cian.ru/api/geo/geocode-cached/?request={addressInputted}"
-            responseForGetCoord = self.cloudscraper.get(linkForGetCoord)
+            responseForGetCoord = self.__cloudscraper.get(linkForGetCoord)
             return responseForGetCoord.json()["items"][0]
 
         data = getCoord()
         linkForGetGeoID = "https://www.cian.ru/api/geo/geocoded-for-search/"
-        responseForGetGeoID = self.cloudscraper.post(linkForGetGeoID, json={
+        responseForGetGeoID = self.__cloudscraper.post(linkForGetGeoID, json={
             "Lng": data["coordinates"][0],
             "Lat": data["coordinates"][1],
             "Kind": data["kind"],
             "Address": data["text"]
         })
 
-        self.geoID = responseForGetGeoID.json()["details"][1]["id"]
+        self.__geocodeID = responseForGetGeoID.json()["details"][1]["id"]
 
-        # link = f"https://api.cian.ru/geo-suggest/v2/suggest/?offerType=flat&query={address}&regionId=1&dealType=sale&source=serp"
-        # link = f"https://api.cian.ru/geo-suggest/v2/{1}-komnata/suggest/?offerType=flat&query=2&regionId=1&dealType=sale&source=serp"
-        # response = self.cloudscraper.get(link)
-        # print(response.text)
-        # print(response.json()["data"]["suggestions"]["newbuildings"]["items"][0]["id"])
-        # geoID = response.json()["data"]["suggestions"]["newbuildings"]["items"][0]["id"]
+    def __readFlatsParamsFromJson(self):
+        """
+        Функция, которая считывает данные о квартирах с json файла
+        """
 
-    def __calcFlatsLinksAndIDs(self):
-        """
-        Функция для нахождения id и ссылки квартир по заданному адресу.
-        """
+        houseMaterialsId = {
+            "кирпич": 1,
+            "brick": 1,
+            "монолит": 2,
+            "monolith": 2,
+            "панель": 3,
+            "panel": 3
+        }
+
+        segmentId = {
+            "старый жилой фонд": 1,
+            "oldhousingstock": 1,
+            "современное жильё": 1,
+            "modernhousing": 1,
+            "новостройка": 2,
+            "newbuilding": 2,
+        }
+
         linkOfOffers = "https://api.cian.ru/search-offers/v2/search-offers-desktop/"
-        # TODO: сделать возможность изменять кол-во комнат
-        responseOfOffers = self.cloudscraper.post(linkOfOffers, json={
+        responseOfOffers = self.__cloudscraper.post(linkOfOffers, json={
             "jsonQuery": {
                 "_type": "flatsale",
                 "engine_version": {
@@ -73,18 +106,33 @@ class CianParser(object):
                 },
                 "geo": {
                     "type": "geo",
-                    "value": [
-                        {
-                            "type": "street",
-                            "id": self.geoID
-                        }
-                    ]
+                    "value": [{
+                        "type": "street",
+                        "id": self.__geocodeID
+                    }]
                 },
                 "room": {
                     "type": "terms",
                     "value": [
-                        2
+                        int(self.__rooms)
                     ]
+                },
+                "house_material": {
+                    "type": "terms",
+                    "value": [
+                        houseMaterialsId[self.__material]
+                    ]
+                },
+                "building_status": {
+                    "type": "term",
+                    "value": segmentId[self.__segment]
+                },
+                "floor": {
+                    "type": "range",
+                    "value": {
+                        "gte": 0,
+                        "lte": self.__maxFloor
+                    }
                 },
                 "region": {
                     "type": "terms",
@@ -94,38 +142,62 @@ class CianParser(object):
                 }
             }
         })
-        for elem in responseOfOffers.json()["data"]["offersSerialized"]:
-            idOfFlat = elem["id"]
-            self.listOfFlatsID.append(idOfFlat)
-            self.listOfFlatsLink.append(f"https://www.cian.ru/sale/flat/{idOfFlat}")
 
-    def __parsePage(self, link: str):
-        """
-        Функция для получения данных о квартире посредством парсинга.
-        :param link: ссылка на квартиру на сайте cian
-        :return: словарь с характеристиками квартиры
-        """
+        for name in ["offersSerialized", "suggestOffersSerializedList"]:
+            for elem in responseOfOffers.json()["data"][name]:
+                metroTime: int = 100000
+                for metroData in elem["geo"]["undergrounds"]:
+                    metroTime = min(metroData["time"], metroTime)
 
-        # Вынужденная мера ждать 4 секунды, чтобы сайт не понял, что мы "робот"
-        time.sleep(4)
-        page = self.cloudscraper.get(link).text
-        soup = bs4.BeautifulSoup(page, "html.parser")
+                floor: int = elem["floorNumber"]
+                maxFloor: int = elem["building"]["floorsCount"]
+                area: str = elem["totalArea"]
+                kitchenArea: str = elem["kitchenArea"]
+                isThereBalcony: bool = True if type(elem["balconiesCount"]) is int and elem[
+                    "balconiesCount"] > 0 else False
 
-        data = {}
-        a = soup.find("span", {"itemprop": "price"})
-        # flatParams = soup.find_all("div", {"class": "a10a3f92e9--info-value--bm3DC"})
-        flatParams = soup.find_all("div", {"data-testid": "object-summary-description-value"})
+                kitchenArea = self.__flatKitchenArea if kitchenArea is None else kitchenArea
 
-        data["square"] = flatParams[0].text.replace(" ", "")[:-3]
-        data["liveSquare"] = flatParams[1].text.replace(" ", "")[:-3]
-        data["kitchen"] = flatParams[2].text.replace(" ", "")[:-3]
-        data["floor"], data["maxFloor"] = flatParams[3].text.replace(" ", "").split("из")
-        data["year"] = flatParams[4].text.replace(" ", "")
-        data["price"] = a.text.replace(" ", "")[:-1]
+                data = {
+                    "address": elem["geo"]["userInput"],
+                    "price": elem["bargainTerms"]["price"],
+                    "roomsCount": elem["roomsCount"],
+                    "floor": floor,
+                    "maxFloor": maxFloor,
+                    "material": elem["building"]["materialType"],
+                    "area": area,
+                    "kitchenArea": kitchenArea,
+                    "balcony": str(isThereBalcony),
+                    "metroTime": metroTime,
+                    "segment": self.__segment,
+                    "typeOfFloor": {
+                        "x": self.__typeOfEvalFloor,
+                        "y": CorrectParam.getTypeOfFloor(floor, maxFloor)
+                    },
+                    "typeOfArea": {
+                        "x": self.__typeOfEvalArea,
+                        "y": CorrectParam.getTypeOfArea(float(area))
+                    },
+                    "typeOfKitchenArea": {
+                        "x": self.__typeOfEvalKitchenArea,
+                        "y": CorrectParam.getTypeOfKitchenArea(float(kitchenArea))
+                    },
+                    "typeOfBalcony": {
+                        "x": self.__typeOfEvalBalcony,
+                        "y": CorrectParam.getTypeOfBalcony(isThereBalcony)
+                    },
+                    "typeOfMetroTime": {
+                        "x": self.__typeOfEvalMetroTime,
+                        "y": CorrectParam.getTypeOfMetroTime(metroTime)
+                    },
+                    "typeOfStatusFinish": {
+                        "x": self.__typeOfEvalStatusFinish,
+                        "y": self.__typeOfEvalStatusFinish
+                    },
+                    "location": {
+                        "lat": str(elem["geo"]["coordinates"]["lat"]),
+                        "lng": str(elem["geo"]["coordinates"]["lng"]),
+                    }
+                }
 
-        print(data)
-
-
-if __name__ == "__main__":
-    c = CianParser()
-    c.parse()
+                self.__listOfFlatParams.append(data)
