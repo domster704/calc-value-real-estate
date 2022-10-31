@@ -29,13 +29,17 @@ class CianParser(object):
         # ------------- Корректирующие параметры -------------
         self.__flatFloor: int = dictWithData["correctFloor"]
         self.__flatArea: str = dictWithData["correctArea"]
-        self.__flatKitchenFloor: str = dictWithData["correctKitchenArea"]
+        self.__flatKitchenArea: str = dictWithData["correctKitchenArea"]
         self.__flatBalcony: bool = True if str(dictWithData["correctBalcony"]).lower() == "true" else False
         self.__metroTime: int = dictWithData["correctMetroTime"]
-        self.__flatSegment: str = self.__segment
+        self.__flatStatusFinish: str = str(dictWithData["correctStatusFinish"]).lower()
 
-        self.__typeOfEvalFloor = CorrectParam.getTypeOfFloor(self.__flatFloor, self.__maxFloor)
-        self.__typeOfEvalArea = CorrectParam.getTypeOfFloor(self.__flatFloor, self.__maxFloor)
+        self.__typeOfEvalFloor: int = CorrectParam.getTypeOfFloor(self.__flatFloor, self.__maxFloor)
+        self.__typeOfEvalArea: int = CorrectParam.getTypeOfArea(float(self.__flatArea))
+        self.__typeOfEvalKitchenArea: int = CorrectParam.getTypeOfKitchenArea(float(self.__flatKitchenArea))
+        self.__typeOfEvalBalcony: int = CorrectParam.getTypeOfBalcony(self.__flatBalcony)
+        self.__typeOfEvalMetroTime: int = CorrectParam.getTypeOfMetroTime(self.__metroTime)
+        self.__typeOfEvalStatusFinish: int = CorrectParam.getTypeOfStatusFinish(self.__flatStatusFinish)
 
     def parse(self):
         self.__geoID(self.__address)
@@ -139,29 +143,54 @@ class CianParser(object):
 
         for name in ["offersSerialized", "suggestOffersSerializedList"]:
             for elem in responseOfOffers.json()["data"][name]:
-                isThereBalcony: bool = True if type(elem["balconiesCount"]) is int and elem[
-                    "balconiesCount"] > 0 else False
                 metroTime: int = 100000
                 for metroData in elem["geo"]["undergrounds"]:
                     metroTime = min(metroData["time"], metroTime)
-                
+
+                floor: int = elem["floorNumber"]
+                maxFloor: int = elem["building"]["floorsCount"]
+                area: str = elem["totalArea"]
+                kitchenArea: str = elem["kitchenArea"]
+                isThereBalcony: bool = True if type(elem["balconiesCount"]) is int and elem[
+                    "balconiesCount"] > 0 else False
+
+                kitchenArea = self.__flatKitchenArea if kitchenArea is None else kitchenArea
+
                 data = {
-                    # "id": elem["id"],
-                    # "buildingData": elem["building"],
                     "address": elem["geo"]["userInput"],
                     "price": elem["bargainTerms"]["price"],
                     "roomsCount": elem["roomsCount"],
-                    "floor": elem["floorNumber"],
-                    "maxFloor": elem["building"]["floorsCount"],
+                    "floor": floor,
+                    "maxFloor": maxFloor,
                     "material": elem["building"]["materialType"],
-                    "area": elem["totalArea"],
-                    "kitchenArea": elem["kitchenArea"],
+                    "area": area,
+                    "kitchenArea": kitchenArea,
                     "balcony": str(isThereBalcony),
                     "metroTime": metroTime,
                     "segment": self.__segment,
                     "typeOfFloor": {
                         "x": self.__typeOfEvalFloor,
-                        "y": CianParser.__getTypeOfFloor(elem["floorNumber"], elem["building"]["floorsCount"])
+                        "y": CorrectParam.getTypeOfFloor(floor, maxFloor)
+                    },
+                    "typeOfArea": {
+                        "x": self.__typeOfEvalArea,
+                        "y": CorrectParam.getTypeOfArea(float(area))
+                    },
+                    "typeOfKitchenArea": {
+                        "x": self.__typeOfEvalKitchenArea,
+                        "y": CorrectParam.getTypeOfKitchenArea(float(kitchenArea))
+                    },
+                    "typeOfBalcony": {
+                        "x": self.__typeOfEvalBalcony,
+                        "y": CorrectParam.getTypeOfBalcony(isThereBalcony)
+                    },
+                    "typeOfMetroTime": {
+                        "x": self.__typeOfEvalMetroTime,
+                        "y": CorrectParam.getTypeOfMetroTime(metroTime)
+                    },
+                    "typeOfStatusFinish": {
+                        "x": self.__typeOfEvalStatusFinish,
+                        "y": self.__typeOfEvalStatusFinish
                     },
                     "location": {
                         "lat": str(elem["geo"]["coordinates"]["lat"]),
@@ -257,3 +286,17 @@ class CorrectParam(object):
         elif 60 < metroTime <= 90:
             status = 5
         return status
+
+    @staticmethod
+    def getTypeOfStatusFinish(statusFinish: str) -> int:
+        """
+        Определяет номер строки/столбца для корректировки из таблицы в "Приложении 6"
+        :param statusFinish: состояние отделки
+        :return: status - индекс
+        """
+        data: dict = {
+            "nofinish": 0,
+            "econom": 1,
+            "improved": 2
+        }
+        return data[statusFinish]
