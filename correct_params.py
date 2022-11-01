@@ -93,7 +93,10 @@ class CorrectParam(object):
         """
         data: dict = {
             "nofinish": 0,
+            "без отделки": 0,
             "econom": 1,
-            "improved": 2
+            "эконом": 1,
+            "improved": 2,
+            "улучшенный": 2
         }
         return data[statusFinish]

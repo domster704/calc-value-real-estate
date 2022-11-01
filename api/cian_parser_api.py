@@ -19,7 +19,7 @@ class CianParser(object):
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36"
         }
         self.__geocodeID: int = 0
-        self.__listOfFlatParams: list = []
+        self.__flatParams: dict = {}
 
         # ------------- Обязательные параметры ---------------
         self.__address: str = "".join(dictWithData["address"].split(',')[:-1])
@@ -27,6 +27,7 @@ class CianParser(object):
         self.__segment: str = str(dictWithData["segment"]).lower()
         self.__maxFloor: int = dictWithData["maxFloor"]
         self.__material: str = str(dictWithData["material"]).lower()
+        self.__objectData: dict = dictWithData
 
         # ------------- Корректирующие параметры -------------
         self.__flatFloor: int = dictWithData["correctFloor"]
@@ -36,6 +37,7 @@ class CianParser(object):
         self.__metroTime: int = dictWithData["correctMetroTime"]
         self.__flatStatusFinish: str = str(dictWithData["correctStatusFinish"]).lower()
 
+        # ------------- Индексы корректирующих параметров -------------
         self.__typeOfEvalFloor: int = CorrectParam.getTypeOfFloor(self.__flatFloor, self.__maxFloor)
         self.__typeOfEvalArea: int = CorrectParam.getTypeOfArea(float(self.__flatArea))
         self.__typeOfEvalKitchenArea: int = CorrectParam.getTypeOfKitchenArea(float(self.__flatKitchenArea))
@@ -46,7 +48,7 @@ class CianParser(object):
     def parse(self):
         self.__geoID(self.__address)
         self.__readFlatsParamsFromJson()
-        return self.__listOfFlatParams
+        return self.__flatParams
 
     def __geoID(self, addressInputted: str):
         """
@@ -143,6 +145,7 @@ class CianParser(object):
             }
         })
 
+        analogsList = []
         for name in ["offersSerialized", "suggestOffersSerializedList"]:
             for elem in responseOfOffers.json()["data"][name]:
                 metroTime: int = 100000
@@ -200,4 +203,8 @@ class CianParser(object):
                     }
                 }
 
-                self.__listOfFlatParams.append(data)
+                analogsList.append(data)
+        self.__flatParams = {
+            "standard": self.__objectData,
+            "analogs": analogsList
+        }
