@@ -5,8 +5,11 @@ from flask_restful import Resource
 from options.correct_params import CorrectParam
 import options.API_KEYS as API_KEYS
 
+from flask_jwt_extended import jwt_required
+
 
 class CianParserApi(Resource):
+    # @jwt_required() - убрать, когда сделают авторизацию
     def post(self):
         args = request.json
         cianParser = CianParser(args)
