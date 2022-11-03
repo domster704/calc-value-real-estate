@@ -27,7 +27,8 @@ class CianParser(object):
 
         # ------------- Обязательные параметры ---------------
         self.__address: str = "".join(dictWithData["address"].split(',')[:-1])
-        self.__rooms: int = dictWithData["room"]
+        self.__rooms: int = 9 if type(dictWithData["room"]) == str and str(
+            dictWithData["room"]).lower() == "студия" else dictWithData["room"]
         self.__segment: str = str(dictWithData["segment"]).lower()
         self.__maxFloor: int = dictWithData["maxFloor"]
         self.__material: str = str(dictWithData["material"]).lower()
