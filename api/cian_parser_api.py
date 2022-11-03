@@ -2,7 +2,8 @@ import cloudscraper
 from flask import request, jsonify
 from flask_restful import Resource
 
-from correct_params import CorrectParam
+from options.correct_params import CorrectParam
+import options.API_KEYS as API_KEYS
 
 
 class CianParserApi(Resource):
