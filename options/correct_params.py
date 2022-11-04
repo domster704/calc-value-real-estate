@@ -95,8 +95,8 @@ class CorrectParam(object):
             "nofinish": 0,
             "без отделки": 0,
             "econom": 1,
-            "эконом": 1,
+            "муниципальный ремонт": 1,
             "improved": 2,
-            "улучшенный": 2
+            "современная отделка": 2
         }
         return data[statusFinish]
