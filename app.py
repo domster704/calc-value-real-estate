@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_restful import Api
 from flask_migrate import Migrate
+from flask_swagger_ui import get_swaggerui_blueprint
 from api.cian_parser_api import CianParserApi
 from api.auth import AuthUserApi, AuthLoginApi
 from models import db, jwt
@@ -27,6 +28,18 @@ api_routes = [
 
 for i in api_routes:
     api.add_resource(i[0], i[1])
+
+# API Documentation
+SWAGGER_URL = '/api/swagger'
+API_URL = '/static/swagger.json'
+swagger_ui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': 'Flask Project for LCT hackathon'
+    }
+)
+app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
 
 if __name__ == '__main__':
     app.run()

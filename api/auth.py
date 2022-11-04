@@ -39,11 +39,13 @@ class Auth(object):
         user = db.session.query(User).filter_by(username=username).one_or_none()
         if user is not None and check_password_hash(user.password, password):
             access_token = create_access_token(identity=user.username)
-            return jsonify({
-                'message': 'Success',
-                'token': access_token
-            })
+            return {
+                       'status': True,
+                       'message': 'Success',
+                       'token': access_token
+                   }, 200
         else:
-            return jsonify({
-                'message': 'Login error'
-            })
+            return {
+                       'status': False,
+                       'message': 'Incorrect login or password!'
+                   }, 403
