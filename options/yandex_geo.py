@@ -16,7 +16,7 @@ class YandexGeo(object):
             f"https://geocode-maps.yandex.ru/1.x/?format=json&apikey={self.__API_KEY}&geocode={self.__address}")
         data = str(
             res.json()["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]["Point"]["pos"]).split()
-        return {"coordinates": {
+        return {"location": {
             "lat": data[0],
             "lng": data[1],
         }}
