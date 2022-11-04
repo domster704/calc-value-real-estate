@@ -3,9 +3,7 @@ from flask import request, jsonify
 from flask_restful import Resource
 
 from options.correct_params import CorrectParam
-import options.API_KEYS as API_KEYS
-
-from flask_jwt_extended import jwt_required
+from options.yandex_geo import YandexGeo
 
 
 class CianParserApi(Resource):
@@ -28,17 +26,19 @@ class CianParser(object):
         # ------------- Обязательные параметры ---------------
         self.__address: str = "".join(dictWithData["address"].split(',')[:-1])
         self.__rooms: int = 9 if type(dictWithData["room"]) == str and str(
-            dictWithData["room"]).lower() == "студия" else dictWithData["room"]
+            dictWithData["room"]).lower() == "студия" else int(dictWithData["room"])
         self.__segment: str = str(dictWithData["segment"]).lower()
         self.__maxFloor: int = dictWithData["maxFloor"]
         self.__material: str = str(dictWithData["material"]).lower()
-        self.__objectData: dict = dictWithData
+
+        self.__coordinates: dict = YandexGeo(dictWithData["address"]).getCoords()
+        self.__objectData: dict = {**dictWithData, **self.__coordinates}
 
         # ------------- Корректирующие параметры -------------
         self.__flatFloor: int = dictWithData["correctFloor"]
         self.__flatArea: str = dictWithData["correctArea"]
         self.__flatKitchenArea: str = dictWithData["correctKitchenArea"]
-        self.__flatBalcony: bool = True if str(dictWithData["correctBalcony"]).lower() == "true" else False
+        self.__flatBalcony: bool = True if str(dictWithData["correctBalcony"]).lower() == "да" else False
         self.__metroTime: int = dictWithData["correctMetroTime"]
         self.__flatStatusFinish: str = str(dictWithData["correctStatusFinish"]).lower()
 
@@ -97,6 +97,7 @@ class CianParser(object):
         segmentId = {
             "старый жилой фонд": 1,
             "oldhousingstock": 1,
+            "современное жилье": 1,
             "современное жильё": 1,
             "modernhousing": 1,
             "новостройка": 2,
@@ -150,9 +151,18 @@ class CianParser(object):
             }
         })
 
+        # кол-во выдаваемых аналогов
+        MAX_COUNT_OF_ANALOGS = 7
+
+        count: int = 0
         analogsList = []
         for name in ["offersSerialized", "suggestOffersSerializedList"]:
+            if count == MAX_COUNT_OF_ANALOGS:
+                break
             for elem in responseOfOffers.json()["data"][name]:
+                if count == MAX_COUNT_OF_ANALOGS:
+                    break
+
                 metroTime: int = 100000
                 for metroData in elem["geo"]["undergrounds"]:
                     metroTime = min(metroData["time"], metroTime)
@@ -178,35 +188,36 @@ class CianParser(object):
                     "balcony": str(isThereBalcony),
                     "metroTime": metroTime,
                     "segment": self.__segment,
-                    "typeOfFloor": {
-                        "x": self.__typeOfEvalFloor,
-                        "y": CorrectParam.getTypeOfFloor(floor, maxFloor)
-                    },
-                    "typeOfArea": {
-                        "x": self.__typeOfEvalArea,
-                        "y": CorrectParam.getTypeOfArea(float(area))
-                    },
-                    "typeOfKitchenArea": {
-                        "x": self.__typeOfEvalKitchenArea,
-                        "y": CorrectParam.getTypeOfKitchenArea(float(kitchenArea))
-                    },
-                    "typeOfBalcony": {
-                        "x": self.__typeOfEvalBalcony,
-                        "y": CorrectParam.getTypeOfBalcony(isThereBalcony)
-                    },
-                    "typeOfMetroTime": {
-                        "x": self.__typeOfEvalMetroTime,
-                        "y": CorrectParam.getTypeOfMetroTime(metroTime)
-                    },
-                    "typeOfStatusFinish": {
-                        "x": self.__typeOfEvalStatusFinish,
-                        "y": self.__typeOfEvalStatusFinish
-                    },
+                    "typeOfFloor": [
+                        self.__typeOfEvalFloor,
+                        CorrectParam.getTypeOfFloor(floor, maxFloor)
+                    ],
+                    "typeOfArea": [
+                        self.__typeOfEvalArea,
+                        CorrectParam.getTypeOfArea(float(area))
+                    ],
+                    "typeOfKitchenArea": [
+                        self.__typeOfEvalKitchenArea,
+                        CorrectParam.getTypeOfKitchenArea(float(kitchenArea))
+                    ],
+                    "typeOfBalcony": [
+                        self.__typeOfEvalBalcony,
+                        CorrectParam.getTypeOfBalcony(isThereBalcony)
+                    ],
+                    "typeOfMetroTime": [
+                        self.__typeOfEvalMetroTime,
+                        CorrectParam.getTypeOfMetroTime(metroTime)
+                    ],
+                    "typeOfStatusFinish": [
+                        self.__typeOfEvalStatusFinish,
+                        self.__typeOfEvalStatusFinish
+                    ],
                     "location": {
                         "lat": str(elem["geo"]["coordinates"]["lat"]),
                         "lng": str(elem["geo"]["coordinates"]["lng"]),
                     }
                 }
+                count += 1
 
                 analogsList.append(data)
         self.__flatParams = {
