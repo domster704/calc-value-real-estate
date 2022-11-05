@@ -164,8 +164,10 @@ class CianParser(object):
                     break
 
                 material: str = elem["building"]["materialType"]
-                if material is None or CianParser.__convertEnglishMaterialToRussian(material) != self.__material:
+                if material is None:
                     continue
+                # if material is None or CianParser.__convertEnglishMaterialToRussian(material) != self.__material:
+                #     continue
 
                 metroTime: int = 100000
                 for metroData in elem["geo"]["undergrounds"]:
@@ -178,7 +180,7 @@ class CianParser(object):
                 isThereBalcony: str = "да" if type(elem["balconiesCount"]) is int and elem[
                     "balconiesCount"] > 0 else "нет"
 
-                kitchenArea = self.__flatKitchenArea if kitchenArea is None else kitchenArea
+                kitchenArea = str(float(self.__flatKitchenArea)) if kitchenArea is None else kitchenArea
 
                 data = {
                     "address": elem["geo"]["userInput"],
@@ -237,5 +239,5 @@ class CianParser(object):
             "brick": "кирпич"
         }
         if material not in words.keys():
-            return ""
+            return material
         return words[material]
