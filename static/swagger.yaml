@@ -189,6 +189,7 @@ components:
         - location
         - material
         - maxFloor
+        - statusFinish
         - metroTime
         - price
         - roomsCount
@@ -236,6 +237,10 @@ components:
           type: integer
           description: Время в минутах до метро
           example: 5
+        statusFinish:
+          type: string
+          description: состояние отделки у квартиры-аналога
+          example: современная отделка
         typeOfFloor:
           type: array
           example:

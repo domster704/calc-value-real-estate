@@ -220,6 +220,7 @@ class CianParser(object):
                     "balcony": isThereBalcony,
                     "metroTime": metroTime,
                     "segment": self.__segment,
+                    "statusFinish": self.__flatStatusFinish,
                     "typeOfFloor": [
                         self.__typeOfEvalFloor,
                         CorrectParam.getTypeOfFloor(floor, maxFloor)
