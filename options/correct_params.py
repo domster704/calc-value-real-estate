@@ -99,4 +99,5 @@ class CorrectParam(object):
             "improved": 2,
             "современная отделка": 2
         }
+
         return data[statusFinish]

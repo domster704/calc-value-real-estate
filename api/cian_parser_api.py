@@ -104,6 +104,12 @@ class CianParser(object):
             "newbuilding": 2,
         }
 
+        repairID = {
+            "без отделки": [1],
+            "муниципальный ремонт": [2],
+            "современная отделка": [3, 4],
+        }
+
         linkOfOffers = "https://api.cian.ru/search-offers/v2/search-offers-desktop/"
         responseOfOffers = self.__cloudscraper.post(linkOfOffers, json={
             "jsonQuery": {
@@ -142,6 +148,10 @@ class CianParser(object):
                         "lte": self.__maxFloor
                     }
                 },
+                "repair": {
+                    "type": "terms",
+                    "value": repairID[self.__flatStatusFinish]
+                },
                 "region": {
                     "type": "terms",
                     "value": [
@@ -156,6 +166,21 @@ class CianParser(object):
 
         count: int = 0
         analogsList = []
+
+        def getFirst3Photos(photosListOfList) -> list:
+            """
+            Ищет первые 3 (если их меньше, то возвращает меньшее кол-во).
+            :param photosListOfList: список объектов, хранящих ссылки на фото квартиры.
+            :return: список ссылок
+            """
+            localCounter: int = 0
+            resList = []
+            for i in range(len(photosListOfList)):
+                resList.append(photosListOfList[i]["fullUrl"])
+                if i > 2:
+                    break
+            return resList
+
         for name in ["offersSerialized", "suggestOffersSerializedList"]:
             if count == MAX_COUNT_OF_ANALOGS:
                 break
@@ -221,7 +246,8 @@ class CianParser(object):
                     "location": {
                         "lat": str(elem["geo"]["coordinates"]["lat"]),
                         "lng": str(elem["geo"]["coordinates"]["lng"]),
-                    }
+                    },
+                    "photos": getFirst3Photos(elem["photos"])
                 }
                 count += 1
 

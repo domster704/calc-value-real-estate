@@ -175,6 +175,10 @@ components:
           type: string
           description: корректирующее состояние отделки. Может быть ["nofinish", "econom", "improved"] или русские аналоги ["без отделки", "муниципальный ремонт", "современная отделка"]
           example: без отделки
+        photos:
+          type: array
+          description: список, состоящий из ссылок на фотографии квартиры
+          maxLength: 3
     AnalogItem:
       required:
         - address
@@ -194,6 +198,7 @@ components:
         - typeOfKitchenArea
         - typeOfMetroTime
         - typeOfStatusFinish
+        - photos
       type: object
       properties:
         address:
@@ -275,6 +280,13 @@ components:
             type: integer
         location:
           $ref: '#/components/schemas/Location'
+        photos:
+          type: array
+          description: список, состоящий из ссылок на фотографии квартиры
+          maxLength: 3
+          example: [ "https://cdn-p.cian.site/images/88/844/931/kvartira-moskva-prospekt-mira-1394488860-1.jpg",
+                     "https://cdn-p.cian.site/images/88/844/931/kvartira-moskva-prospekt-mira-1394488849-1.jpg",
+                     "https://cdn-p.cian.site/images/88/844/931/kvartira-moskva-prospekt-mira-1394488853-1.jpg" ]
     Location:
       required:
         - lat
