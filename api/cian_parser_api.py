@@ -8,7 +8,7 @@ from options.yandex_geo import YandexGeo
 
 
 class CianParserApi(Resource):
-    # @jwt_required()
+    @jwt_required()
     def post(self):
         args = request.json
         cianParser = CianParser(args)
