@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template, send_from_directory
 from flask_restful import Api
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
@@ -6,7 +6,7 @@ from api.cian_parser_api import CianParserApi
 from api.auth import AuthUserApi, AuthLoginApi
 from models import db, jwt
 
-app = Flask(__name__)
+app = Flask(__name__, )
 api = Api(app)
 
 DB_URL = 'postgresql+psycopg2://kmggqntwsiumwl:f1ba94a7f9155d2f819e6e53e8e403ec13edde7821c4d2d5548b390d94e5758d@ec2-54-82-205-3.compute-1.amazonaws.com:5432/deqkn4srtrojb6'
@@ -40,6 +40,26 @@ swagger_ui_blueprint = get_swaggerui_blueprint(
     }
 )
 app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
+
+FLUTTER_WEB_APP = 'templates'
+
+
+@app.route('/')
+def render_page():
+    return render_template('index.html')
+
+
+@app.route('/<path:name>')
+def return_flutter_doc(name):
+    datalist = str(name).split('/')
+    DIR_NAME = FLUTTER_WEB_APP
+
+    if len(datalist) > 1:
+        for i in range(0, len(datalist) - 1):
+            DIR_NAME += '/' + datalist[i]
+
+    return send_from_directory(DIR_NAME, datalist[-1])
+
 
 if __name__ == '__main__':
     app.run()
