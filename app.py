@@ -31,7 +31,7 @@ for i in api_routes:
 
 # API Documentation
 SWAGGER_URL = '/api/swagger'
-API_URL = '/static/swagger.json'
+API_URL = '/static/swagger.yaml'
 swagger_ui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,

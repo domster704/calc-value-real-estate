@@ -163,6 +163,10 @@ class CianParser(object):
                 if count == MAX_COUNT_OF_ANALOGS:
                     break
 
+                material: str = elem["building"]["materialType"]
+                if material is None or CianParser.__convertEnglishMaterialToRussian(material) != self.__material:
+                    continue
+
                 metroTime: int = 100000
                 for metroData in elem["geo"]["undergrounds"]:
                     metroTime = min(metroData["time"], metroTime)
@@ -171,8 +175,8 @@ class CianParser(object):
                 maxFloor: int = elem["building"]["floorsCount"]
                 area: str = elem["totalArea"]
                 kitchenArea: str = elem["kitchenArea"]
-                isThereBalcony: bool = True if type(elem["balconiesCount"]) is int and elem[
-                    "balconiesCount"] > 0 else False
+                isThereBalcony: str = "да" if type(elem["balconiesCount"]) is int and elem[
+                    "balconiesCount"] > 0 else "нет"
 
                 kitchenArea = self.__flatKitchenArea if kitchenArea is None else kitchenArea
 
@@ -182,10 +186,10 @@ class CianParser(object):
                     "roomsCount": elem["roomsCount"],
                     "floor": floor,
                     "maxFloor": maxFloor,
-                    "material": elem["building"]["materialType"],
+                    "material": CianParser.__convertEnglishMaterialToRussian(material),
                     "area": area,
                     "kitchenArea": kitchenArea,
-                    "balcony": str(isThereBalcony),
+                    "balcony": isThereBalcony,
                     "metroTime": metroTime,
                     "segment": self.__segment,
                     "typeOfFloor": [
@@ -202,7 +206,7 @@ class CianParser(object):
                     ],
                     "typeOfBalcony": [
                         self.__typeOfEvalBalcony,
-                        CorrectParam.getTypeOfBalcony(isThereBalcony)
+                        CorrectParam.getTypeOfBalcony(True if isThereBalcony == "да" else False)
                     ],
                     "typeOfMetroTime": [
                         self.__typeOfEvalMetroTime,
@@ -224,3 +228,14 @@ class CianParser(object):
             "standard": self.__objectData,
             "analogs": analogsList
         }
+
+    @staticmethod
+    def __convertEnglishMaterialToRussian(material: str) -> str:
+        words = {
+            "panel": "панель",
+            "monolith": "монолит",
+            "brick": "кирпич"
+        }
+        if material not in words.keys():
+            return ""
+        return words[material]
