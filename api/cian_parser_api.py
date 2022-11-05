@@ -1,5 +1,6 @@
 import cloudscraper
 from flask import request, jsonify
+from flask_jwt_extended import jwt_required
 from flask_restful import Resource
 
 from options.correct_params import CorrectParam
@@ -7,7 +8,7 @@ from options.yandex_geo import YandexGeo
 
 
 class CianParserApi(Resource):
-    # @jwt_required() - убрать, когда сделают авторизацию
+    @jwt_required()
     def post(self):
         args = request.json
         cianParser = CianParser(args)
