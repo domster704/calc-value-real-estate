@@ -6,13 +6,18 @@ from flask_restful import Resource
 from options.correct_params import CorrectParam
 from options.yandex_geo import YandexGeo
 
+from logger_db import LoggerDB
+
 
 class CianParserApi(Resource):
     @jwt_required()
     def post(self):
         args = request.json
         cianParser = CianParser(args)
-        return jsonify(cianParser.parse())
+        parse = cianParser.parse()
+        token = request.headers['Authorization'].replace('Bearer ', '')
+        LoggerDB.log_user_by_token(token, f'"{request.method} {request.url}" {parse[1]}')
+        return jsonify(parse[0])
 
 
 class CianParser(object):
@@ -58,7 +63,7 @@ class CianParser(object):
         print(self.__address)
         self.__geoID(self.__address)
         self.__readFlatsParamsFromJson()
-        return self.__flatParams
+        return self.__flatParams, 200
 
     def __geoID(self, addressInputted: str):
         """
