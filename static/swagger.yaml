@@ -110,14 +110,14 @@ components:
           example: 9
         correctBalcony:
           type: string
-          description: корректирующий показатель о наличии балкона принимается ибо "да", либо "нет" (регистр неважен)
+          description: Корректирующий показатель о наличии балкона принимается ибо "да", либо "нет" (регистр неважен)
           example: да
         correctMetroTime:
           type: integer
           example: 7
         correctStatusFinish:
           type: string
-          description: корректирующее состояние отделки. Может быть ["nofinish", "econom", "improved"] или русские аналоги ["без отделки", "муниципальный ремонт", "современная отделка"]
+          description: Корректирующее состояние отделки. Может быть ["nofinish", "econom", "improved"] или русские аналоги ["без отделки", "муниципальный ремонт", "современная отделка"]
           example: без отделки
     ResponseCianParserBody:
       required:
@@ -166,18 +166,18 @@ components:
           example: 9
         correctBalcony:
           type: string
-          description: корректирующий показатель о наличии балкона принимается ибо "да", либо "нет" (регистр неважен)
+          description: Корректирующий показатель о наличии балкона принимается ибо "да", либо "нет" (регистр неважен)
           example: да
         correctMetroTime:
           type: integer
           example: 7
         correctStatusFinish:
           type: string
-          description: корректирующее состояние отделки. Может быть ["nofinish", "econom", "improved"] или русские аналоги ["без отделки", "муниципальный ремонт", "современная отделка"]
+          description: Корректирующее состояние отделки. Может быть ["nofinish", "econom", "improved"] или русские аналоги ["без отделки", "муниципальный ремонт", "современная отделка"]
           example: без отделки
         photos:
           type: array
-          description: список, состоящий из ссылок на фотографии квартиры
+          description: Список, состоящий из ссылок на фотографии квартиры
           maxLength: 3
     AnalogItem:
       required:
@@ -210,11 +210,11 @@ components:
           example: 14800000
         roomsCount:
           type: string
-          description: кол-во комнат
+          description: Кол-во комнат
           example: "2"
         floor:
           type: integer
-          description: этаж квартиры
+          description: Этаж квартиры
           example: 6
         maxFloor:
           type: integer
@@ -227,7 +227,7 @@ components:
           example: "45.5"
         kitchenArea:
           type: string
-          description: Площадь кухни. Может быть null
+          description: Площадь кухни
           example: "6.0"
         balcony:
           type: string
@@ -239,7 +239,7 @@ components:
           example: 5
         statusFinish:
           type: string
-          description: состояние отделки у квартиры-аналога
+          description: Состояние отделки у квартиры-аналога
           example: современная отделка
         typeOfFloor:
           type: array
@@ -287,7 +287,7 @@ components:
           $ref: '#/components/schemas/Location'
         photos:
           type: array
-          description: список, состоящий из ссылок на фотографии квартиры
+          description: Список, состоящий из ссылок на фотографии квартиры
           maxLength: 3
           example: [ "https://cdn-p.cian.site/images/88/844/931/kvartira-moskva-prospekt-mira-1394488860-1.jpg",
                      "https://cdn-p.cian.site/images/88/844/931/kvartira-moskva-prospekt-mira-1394488849-1.jpg",
