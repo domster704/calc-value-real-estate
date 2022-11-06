@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 from api.cian_parser_api import CianParserApi
 from api.auth import AuthLoginApi
+from api.logger_api import LoggerApi
 from models import db, jwt
 from datetime import timedelta
 
@@ -26,7 +27,8 @@ migrate = Migrate(app, db)
 # All routes - (Class, Route)
 api_routes = [
     (CianParserApi, '/api/getCianAnalogs'),
-    (AuthLoginApi, '/api/login')
+    (AuthLoginApi, '/api/login'),
+    (LoggerApi, '/api/logs')
 ]
 
 for i in api_routes:

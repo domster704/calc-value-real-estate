@@ -16,7 +16,7 @@ class CianParserApi(Resource):
         cianParser = CianParser(args)
         parse = cianParser.parse()
         token = request.headers['Authorization'].replace('Bearer ', '')
-        LoggerDB.log_user_by_token(token, f'"{request.method} {request.url}" {parse[1]}')
+        LoggerDB.log_user_by_token(token, f'"{request.method} {request.url}" {parse[1]} -')
         return jsonify(parse[0])
 
 

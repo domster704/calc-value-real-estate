@@ -1,6 +1,6 @@
-from flask import request, jsonify
+from flask import request
 from flask_restful import Resource
-from flask_jwt_extended import create_access_token, decode_token
+from flask_jwt_extended import create_access_token
 from werkzeug.security import check_password_hash
 from models import *
 
