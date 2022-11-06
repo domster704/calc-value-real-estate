@@ -38,7 +38,7 @@ class CianParser(object):
         self.__maxFloor: int = dictWithData["maxFloor"]
         self.__material: str = str(dictWithData["material"]).lower()
 
-        yandexGeo = YandexGeo(dictWithData["address"])
+        yandexGeo: YandexGeo = YandexGeo(dictWithData["address"])
         self.__coordinates: dict = yandexGeo.getCoords()
         self.__address: str = yandexGeo.getDistrict()
         self.__objectData: dict = {**dictWithData, **self.__coordinates}
@@ -60,7 +60,6 @@ class CianParser(object):
         self.__typeOfEvalStatusFinish: int = CorrectParam.getTypeOfStatusFinish(self.__flatStatusFinish)
 
     def parse(self):
-        print(self.__address)
         self.__geoID(self.__address)
         self.__readFlatsParamsFromJson()
         return self.__flatParams, 200
@@ -77,7 +76,6 @@ class CianParser(object):
             """
             linkForGetCoord = f"https://www.cian.ru/api/geo/geocode-cached/?request={addressInputted}"
             responseForGetCoord = self.__cloudscraper.get(linkForGetCoord)
-            print(responseForGetCoord.json())
             return responseForGetCoord.json()["items"][0]
 
         data = getCoord()
@@ -89,7 +87,6 @@ class CianParser(object):
             "Address": data["text"]
         })
 
-        # print(responseForGetGeoID.json())
         for i in responseForGetGeoID.json()["details"]:
             if "район" in str(i["name"]).lower():
                 self.__geocodeID.append({
@@ -206,6 +203,8 @@ class CianParser(object):
                 metroTime: int = 100000
                 for metroData in elem["geo"]["undergrounds"]:
                     metroTime = min(metroData["time"], metroTime)
+                if metroTime == 100000:
+                    metroTime = 30
 
                 floor: int = elem["floorNumber"]
                 maxFloor: int = elem["building"]["floorsCount"]
@@ -269,6 +268,11 @@ class CianParser(object):
 
     @staticmethod
     def __convertEnglishMaterialToRussian(material: str) -> str:
+        """
+        Возвращает переведённое слово.
+        :param material: - название материала на английском.
+        :return: название на русском, если найдено в словаре, иначе это же слово на английском
+        """
         words = {
             "panel": "панель",
             "monolith": "монолит",

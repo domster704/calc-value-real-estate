@@ -4,9 +4,9 @@ import requests
 
 class YandexGeo(object):
     def __init__(self, address: str):
-        self.__address = address
-        self.__geocode = []
-        self.__API_KEY = API_KEYS.API_YANDEX_GEO
+        self.__address: str = address
+        self.__geocode: list = []
+        self.__API_KEY: str = API_KEYS.API_YANDEX_GEO
 
     def getCoords(self) -> dict:
         """
@@ -24,6 +24,10 @@ class YandexGeo(object):
         }}
 
     def getDistrict(self) -> str:
+        """
+        Метод необходимо вызывать только после вызова метод {@link getCoords}
+        :return: название района
+        """
         s = f"https://geocode-maps.yandex.ru/1.x/?apikey={self.__API_KEY}&geocode={','.join(map(str, self.__geocode))}&kind=district&format=json"
         res = requests.get(s)
         listWithKinds = \
@@ -33,11 +37,3 @@ class YandexGeo(object):
         for i in listWithKinds:
             if i["kind"] == "district" and "район" in i["name"]:
                 return i["name"]
-        # print(res.text)
-
-
-if __name__ == "__main__":
-    # c = YandexGeo("г. Москва, ул. Ватутина, д. 11")
-    c = YandexGeo("г. Москва, ул. Октябрьская, д. 11")
-    c.getCoords()
-    print(c.getDistrict())
