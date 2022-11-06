@@ -5,6 +5,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from api.cian_parser_api import CianParserApi
 from api.auth import AuthUserApi, AuthLoginApi
 from models import db, jwt
+from datetime import timedelta
 
 app = Flask(__name__, )
 api = Api(app)
@@ -12,6 +13,8 @@ api = Api(app)
 DB_URL = 'postgresql+psycopg2://kmggqntwsiumwl:f1ba94a7f9155d2f819e6e53e8e403ec13edde7821c4d2d5548b390d94e5758d@ec2-54-82-205-3.compute-1.amazonaws.com:5432/deqkn4srtrojb6'
 
 app.config['JWT_SECRET_KEY'] = '12345'
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=3)
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
