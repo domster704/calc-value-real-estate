@@ -38,7 +38,7 @@ class CianParser(object):
         self.__maxFloor: int = dictWithData["maxFloor"]
         self.__material: str = str(dictWithData["material"]).lower()
 
-        yandexGeo = YandexGeo(dictWithData["address"])
+        yandexGeo: YandexGeo = YandexGeo(dictWithData["address"])
         self.__coordinates: dict = yandexGeo.getCoords()
         self.__address: str = yandexGeo.getDistrict()
         self.__objectData: dict = {**dictWithData, **self.__coordinates}
@@ -60,7 +60,6 @@ class CianParser(object):
         self.__typeOfEvalStatusFinish: int = CorrectParam.getTypeOfStatusFinish(self.__flatStatusFinish)
 
     def parse(self):
-        print(self.__address)
         self.__geoID(self.__address)
         self.__readFlatsParamsFromJson()
         return self.__flatParams, 200
@@ -77,7 +76,6 @@ class CianParser(object):
             """
             linkForGetCoord = f"https://www.cian.ru/api/geo/geocode-cached/?request={addressInputted}"
             responseForGetCoord = self.__cloudscraper.get(linkForGetCoord)
-            print(responseForGetCoord.json())
             return responseForGetCoord.json()["items"][0]
 
         data = getCoord()
@@ -89,7 +87,6 @@ class CianParser(object):
             "Address": data["text"]
         })
 
-        # print(responseForGetGeoID.json())
         for i in responseForGetGeoID.json()["details"]:
             if "район" in str(i["name"]).lower():
                 self.__geocodeID.append({
@@ -192,76 +189,76 @@ class CianParser(object):
                     break
             return resList
 
-        for name in ["offersSerialized"]:
+        name = "offersSerialized"
+        for elem in responseOfOffers.json()["data"][name]:
             if count == MAX_COUNT_OF_ANALOGS:
                 break
-            for elem in responseOfOffers.json()["data"][name]:
-                if count == MAX_COUNT_OF_ANALOGS:
-                    break
 
-                material: str = elem["building"]["materialType"]
-                if material is None:
-                    continue
+            material: str = elem["building"]["materialType"]
+            if material is None:
+                continue
 
-                metroTime: int = 100000
-                for metroData in elem["geo"]["undergrounds"]:
-                    metroTime = min(metroData["time"], metroTime)
+            metroTime: int = 100000
+            for metroData in elem["geo"]["undergrounds"]:
+                metroTime = min(metroData["time"], metroTime)
+            if metroTime == 100000:
+                metroTime = 30
 
-                floor: int = elem["floorNumber"]
-                maxFloor: int = elem["building"]["floorsCount"]
-                area: str = elem["totalArea"]
-                kitchenArea: str = elem["kitchenArea"]
-                isThereBalcony: str = "да" if type(elem["balconiesCount"]) is int and elem[
-                    "balconiesCount"] > 0 else "нет"
+            floor: int = elem["floorNumber"]
+            maxFloor: int = elem["building"]["floorsCount"]
+            area: str = elem["totalArea"]
+            kitchenArea: str = elem["kitchenArea"]
+            isThereBalcony: str = "да" if type(elem["balconiesCount"]) is int and elem[
+                "balconiesCount"] > 0 else "нет"
 
-                kitchenArea = str(float(self.__flatKitchenArea)) if kitchenArea is None else kitchenArea
+            kitchenArea = str(float(self.__flatKitchenArea)) if kitchenArea is None else kitchenArea
 
-                data = {
-                    "address": elem["geo"]["userInput"],
-                    "price": elem["bargainTerms"]["price"],
-                    "roomsCount": elem["roomsCount"],
-                    "floor": floor,
-                    "maxFloor": maxFloor,
-                    "material": CianParser.__convertEnglishMaterialToRussian(material),
-                    "area": area,
-                    "kitchenArea": kitchenArea,
-                    "balcony": isThereBalcony,
-                    "metroTime": metroTime,
-                    "segment": self.__segment,
-                    "statusFinish": self.__flatStatusFinish,
-                    "typeOfFloor": [
-                        self.__typeOfEvalFloor,
-                        CorrectParam.getTypeOfFloor(floor, maxFloor)
-                    ],
-                    "typeOfArea": [
-                        self.__typeOfEvalArea,
-                        CorrectParam.getTypeOfArea(float(area))
-                    ],
-                    "typeOfKitchenArea": [
-                        self.__typeOfEvalKitchenArea,
-                        CorrectParam.getTypeOfKitchenArea(float(kitchenArea))
-                    ],
-                    "typeOfBalcony": [
-                        self.__typeOfEvalBalcony,
-                        CorrectParam.getTypeOfBalcony(True if isThereBalcony == "да" else False)
-                    ],
-                    "typeOfMetroTime": [
-                        self.__typeOfEvalMetroTime,
-                        CorrectParam.getTypeOfMetroTime(metroTime)
-                    ],
-                    "typeOfStatusFinish": [
-                        self.__typeOfEvalStatusFinish,
-                        self.__typeOfEvalStatusFinish
-                    ],
-                    "location": {
-                        "lat": str(elem["geo"]["coordinates"]["lat"]),
-                        "lng": str(elem["geo"]["coordinates"]["lng"]),
-                    },
-                    "photos": getFirst3Photos(elem["photos"])
-                }
-                count += 1
+            data = {
+                "address": elem["geo"]["userInput"],
+                "price": elem["bargainTerms"]["price"],
+                "roomsCount": elem["roomsCount"],
+                "floor": floor,
+                "maxFloor": maxFloor,
+                "material": CianParser.__convertEnglishMaterialToRussian(material),
+                "area": area,
+                "kitchenArea": kitchenArea,
+                "balcony": isThereBalcony,
+                "metroTime": metroTime,
+                "segment": self.__segment,
+                "statusFinish": self.__flatStatusFinish,
+                "typeOfFloor": [
+                    self.__typeOfEvalFloor,
+                    CorrectParam.getTypeOfFloor(floor, maxFloor)
+                ],
+                "typeOfArea": [
+                    self.__typeOfEvalArea,
+                    CorrectParam.getTypeOfArea(float(area))
+                ],
+                "typeOfKitchenArea": [
+                    self.__typeOfEvalKitchenArea,
+                    CorrectParam.getTypeOfKitchenArea(float(kitchenArea))
+                ],
+                "typeOfBalcony": [
+                    self.__typeOfEvalBalcony,
+                    CorrectParam.getTypeOfBalcony(True if isThereBalcony == "да" else False)
+                ],
+                "typeOfMetroTime": [
+                    self.__typeOfEvalMetroTime,
+                    CorrectParam.getTypeOfMetroTime(metroTime)
+                ],
+                "typeOfStatusFinish": [
+                    self.__typeOfEvalStatusFinish,
+                    self.__typeOfEvalStatusFinish
+                ],
+                "location": {
+                    "lat": str(elem["geo"]["coordinates"]["lat"]),
+                    "lng": str(elem["geo"]["coordinates"]["lng"]),
+                },
+                "photos": getFirst3Photos(elem["photos"])
+            }
+            count += 1
 
-                analogsList.append(data)
+            analogsList.append(data)
         self.__flatParams = {
             "standard": self.__objectData,
             "analogs": analogsList
@@ -269,6 +266,11 @@ class CianParser(object):
 
     @staticmethod
     def __convertEnglishMaterialToRussian(material: str) -> str:
+        """
+        Возвращает переведённое слово.
+        :param material: - название материала на английском.
+        :return: название на русском, если найдено в словаре, иначе это же слово на английском
+        """
         words = {
             "panel": "панель",
             "monolith": "монолит",
